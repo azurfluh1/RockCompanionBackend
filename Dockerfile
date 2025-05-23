@@ -14,7 +14,6 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /usr/local/bin/server
 FROM debian:bookworm-slim
 
 COPY --from=builder /usr/local/bin/server /usr/local/bin/server
-COPY --from=builder /.env /.env
 
 RUN chmod +x /usr/local/bin/server
 
