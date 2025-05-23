@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"rockcompanion/config"
+	"rockcompanion/middleware"
 	"rockcompanion/routes"
 
 	"github.com/gin-gonic/gin"
@@ -10,13 +11,14 @@ import (
 )
 
 func main() {
-	err := godotenv.Load("/app/.env")
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 	config.ConnectDB()
 
 	r := gin.Default()
+	r.Use(middleware.CORSMiddleware())
 	api := r.Group("/api")
 	routes.AuthRoutes(api)
 

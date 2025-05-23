@@ -7,25 +7,51 @@ import (
 	"rockcompanion/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func Register(c *gin.Context) {
-	var body models.User
+	var body models.UserRegistrationRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid body boiii"})
 		return
 	}
 
-	hashed, _ := bcrypt.GenerateFromPassword([]byte(body.Password), 14)
-	user := models.User{Email: body.Email, Password: string(hashed)}
+	hashed, err := bcrypt.GenerateFromPassword([]byte(body.Password), 14)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+
+	user := models.User{
+		Id:        uuid.New(),
+		Username:  body.Username,
+		Firstname: body.Firstname,
+		Email:     body.Email,
+		Password:  string(hashed),
+	}
 
 	if err := config.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
 
-	token, _ := utils.GenerateToken(user.ID)
+	if err := config.DB.Where("email = ?", user.Email).First(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve created user"})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		return
+	}
+
+	token, err := utils.GenerateToken(user.Id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"user": user, "token": token})
 }
 
@@ -47,7 +73,11 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, _ := utils.GenerateToken(user.ID)
+	token, err := utils.GenerateToken(user.Id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"user": user, "token": token})
 }
 
