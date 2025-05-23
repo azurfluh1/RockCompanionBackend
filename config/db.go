@@ -16,13 +16,19 @@ var DB *gorm.DB
 func ConnectDB() {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
+		host := os.Getenv("DB_HOST")
+		user := os.Getenv("DB_USER")
+		password := os.Getenv("DB_PASSWORD")
+		name := os.Getenv("DB_NAME")
+		port := os.Getenv("DB_PORT")
+
+		if host == "" || user == "" || password == "" || name == "" || port == "" {
+			log.Fatal("Missing DB configuration")
+		}
+
 		dsn = fmt.Sprintf(
 			"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-			os.Getenv("DB_HOST"),
-			os.Getenv("DB_USER"),
-			os.Getenv("DB_PASSWORD"),
-			os.Getenv("DB_NAME"),
-			os.Getenv("DB_PORT"),
+			host, user, password, name, port,
 		)
 	}
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
