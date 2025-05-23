@@ -1,20 +1,24 @@
 package main
 
 import (
-	"log"
+	"os"
 	"rockcompanion/config"
 	"rockcompanion/middleware"
 	"rockcompanion/routes"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// err := godotenv.Load()
+	// if os.Getenv("FLY_REGION") == "" {
+	// 	err := godotenv.Load()
+	// 	if err != nil {
+	// 		log.Fatal("Error loading .env file")
+	// 	}
+	// } else {
+	os.Getenv("DB_HOST")
+	// }
 	config.ConnectDB()
 
 	r := gin.Default()
